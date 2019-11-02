@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  UIBackgroundTaskScheduler.swift
 //  
 //
 //  Created by Jim Dovey on 11/2/19.
@@ -19,10 +19,10 @@ import UIKit
 @available(iOS 13.0, tvOS 13.0, *)
 @available(OSX, unavailable)
 @available(watchOS, unavailable)
-struct UIBackgroundTaskScheduler<Target: Scheduler>: Scheduler {
+public struct UIBackgroundTaskScheduler<Target: Scheduler>: Scheduler {
     // We pass through to another (real) scheduler, so use their types.
-    typealias SchedulerTimeType = Target.SchedulerTimeType
-    typealias SchedulerOptions = Target.SchedulerOptions
+    public typealias SchedulerTimeType = Target.SchedulerTimeType
+    public typealias SchedulerOptions = Target.SchedulerOptions
     
     /// A type used to manage shared data for copies of a `UIBackgroundTaskScheduler`.
     private class _Storage {
@@ -107,10 +107,10 @@ struct UIBackgroundTaskScheduler<Target: Scheduler>: Scheduler {
     private var target: Target
     
     /// Returns the wrapped scheduler's definition of the current moment in time.
-    var now: SchedulerTimeType { target.now }
+    public var now: SchedulerTimeType { target.now }
     
     /// Returns the minimum tolerance allowed by the wrapped scheduler.
-    var minimumTolerance: SchedulerTimeType.Stride { target.minimumTolerance }
+    public var minimumTolerance: SchedulerTimeType.Stride { target.minimumTolerance }
 
     /// Create a new scheduler that targets the given scheduler, wrapping all operations
     /// with a UIKit background task, optionally using a given name.
@@ -118,13 +118,13 @@ struct UIBackgroundTaskScheduler<Target: Scheduler>: Scheduler {
     /// - Parameters:
     ///   - name: The name given to each created background task
     ///   - target: The `Scheduler` to which operations are ultimately dispatched.
-    init(_ name: String? = nil, target: Target) {
+    public init(_ name: String? = nil, target: Target) {
         self.storage = _Storage(name)
         self.target = target
     }
 
     /// Performs the action at the next possible opportunity.
-    func schedule(options: Self.SchedulerOptions?, _ action: @escaping () -> Void) {
+    public func schedule(options: Self.SchedulerOptions?, _ action: @escaping () -> Void) {
         let ident = storage.openTask()
         target.schedule(options: options) {
             action()
@@ -133,7 +133,7 @@ struct UIBackgroundTaskScheduler<Target: Scheduler>: Scheduler {
     }
 
     /// Performs the action at some time after the specified date.
-    func schedule(after date: Self.SchedulerTimeType, tolerance: Self.SchedulerTimeType.Stride, options: Self.SchedulerOptions?, _ action: @escaping () -> Void) {
+    public func schedule(after date: Self.SchedulerTimeType, tolerance: Self.SchedulerTimeType.Stride, options: Self.SchedulerOptions?, _ action: @escaping () -> Void) {
         let ident = storage.openTask()
         target.schedule(after: date, tolerance: tolerance, options: options) {
             action()
@@ -143,7 +143,7 @@ struct UIBackgroundTaskScheduler<Target: Scheduler>: Scheduler {
     
     /// Performs the action at some time after the specified date, at the specified
     /// frequency, optionally taking into account tolerance if possible.
-    func schedule(after date: Self.SchedulerTimeType, interval: Self.SchedulerTimeType.Stride, tolerance: Self.SchedulerTimeType.Stride, options: Self.SchedulerOptions?, _ action: @escaping () -> Void) -> Cancellable {
+    public func schedule(after date: Self.SchedulerTimeType, interval: Self.SchedulerTimeType.Stride, tolerance: Self.SchedulerTimeType.Stride, options: Self.SchedulerOptions?, _ action: @escaping () -> Void) -> Cancellable {
         let ident = storage.openTask()
         let canceller = target.schedule(after: date, interval: interval, tolerance: tolerance, options: options) {
             action()
