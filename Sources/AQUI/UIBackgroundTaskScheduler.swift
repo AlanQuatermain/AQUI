@@ -16,6 +16,9 @@ import UIKit
 /// it with a call to `.debounce()` or `.receive()`, then the background task will
 /// exit at the point that operation takes over. You can use it as an argument to `.debounce()`
 /// however.
+@available(iOS 13.0, tvOS 13.0, *)
+@available(OSX, unavailable)
+@available(watchOS, unavailable)
 struct UIBackgroundTaskScheduler<Target: Scheduler>: Scheduler {
     // We pass through to another (real) scheduler, so use their types.
     typealias SchedulerTimeType = Target.SchedulerTimeType
