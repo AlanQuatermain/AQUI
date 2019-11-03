@@ -30,7 +30,7 @@ struct VisualEffectEmphasizedKey: EnvironmentKey {
 }
 #endif
 
-#if os(iOS) || targetEnvironment(macCatalyst)
+#if os(iOS) || os(tvOS) || targetEnvironment(macCatalyst)
 struct VisualEffectUIEffectKey: EnvironmentKey {
     typealias Value = UIVisualEffect?
     static var defaultValue: UIVisualEffect? = nil
@@ -130,6 +130,15 @@ extension View {
     ) -> some View {
         background(
             VisualEffectView(parameters: (material, blendingMode, emphasized))
+        )
+    }
+    #elseif os(tvOS)
+    @available(iOS 13.0, tvOS 13.0, *)
+    @available(macOS, unavailable)
+    @available(watchOS, unavailable)
+    public func visualEffect(effect: UIVisualEffect = UIBlurEffect(style: .regular)) -> some View {
+        background(
+            VisualEffectView(parameters: (effect))
         )
     }
     #elseif canImport(UIKit)

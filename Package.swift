@@ -30,5 +30,6 @@ let package = Package(
         .testTarget(
             name: "AQUITests",
             dependencies: ["AQUI"]),
-    ]
+    ],
+    swiftLanguageVersions: [.version("5.1")]
 )
