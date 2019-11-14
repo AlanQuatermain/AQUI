@@ -69,4 +69,5 @@ extension Binding where Value: Equatable {
                     source.wrappedValue = newValue
                 }
         })
+    }
 }
