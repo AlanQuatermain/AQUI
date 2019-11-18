@@ -14,12 +14,12 @@ import AppKit
 #endif
 
 struct VisualEffectKey: EnvironmentKey {
-    typealias Value = VisualEffect?
-    static var defaultValue: Value = nil
+    typealias Value = VisualEffect
+    static var defaultValue: Value = .default
 }
   
 extension EnvironmentValues {
-    public var visualEffect: VisualEffect? {
+    public var visualEffect: VisualEffect {
         get { self[VisualEffectKey.self] }
         set { self[VisualEffectKey.self] = newValue }
     }
@@ -39,8 +39,8 @@ struct VisualEffectPreferenceKey: PreferenceKey {
 
 @available(OSX 10.15, iOS 13.0, tvOS 13.0, *)
 @available(watchOS, unavailable)
-public enum VisualEffect {
-    public enum Material {
+public enum VisualEffect: Equatable, Hashable {
+    public enum Material: Equatable, Hashable {
         @available(OSX 10.15, iOS 13.0, tvOS 13.0, *)
         case `default`
 
@@ -205,20 +205,22 @@ extension VisualEffect {
 @available(watchOS, unavailable)
 struct VisualEffectView: View {
     private let content: _PlatformVisualEffectView
-    var body: some View { content }
+    @State private var effect: VisualEffect
+    var body: some View {
+        content
+            .environment(\.visualEffect, effect)
+            .onPreferenceChange(VisualEffectPreferenceKey.self) {
+                self.effect = $0 ?? .default
+            }
+    }
     
     fileprivate init(effect: VisualEffect) {
-        self.content = _PlatformVisualEffectView(effect)
+        self._effect = State(initialValue: effect)
+        self.content = _PlatformVisualEffectView()
     }
     
     #if os(macOS)
     private struct _PlatformVisualEffectView: NSViewRepresentable {
-        private let effect: VisualEffect
-        
-        fileprivate init(_ effect: VisualEffect) {
-            self.effect = effect
-        }
-        
         func makeNSView(context: Context) -> NSVisualEffectView {
             let view = NSVisualEffectView()
             view.autoresizingMask = [.width, .height]
@@ -226,8 +228,7 @@ struct VisualEffectView: View {
         }
         
         func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
-            let params = context.environment.visualEffect?.parameters
-                ?? effect.parameters
+            let params = context.environment.visualEffect.parameters
             nsView.material = params.material
             nsView.blendingMode = params.blendingMode
             nsView.appearance = params.appearance
@@ -243,21 +244,14 @@ struct VisualEffectView: View {
     }
     #elseif canImport(UIKit)
     private struct _PlatformVisualEffectView: UIViewRepresentable {
-        private let effect: VisualEffect
-        
-        fileprivate init(_ effect: VisualEffect) {
-            self.effect = effect
-        }
-        
         func makeUIView(context: Context) -> UIVisualEffectView {
-            let view = UIVisualEffectView(effect: effect.parameters)
+            let view = UIVisualEffectView(effect: context.environment.visualEffect.parameters)
             view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
             return view
         }
         
         func updateUIView(_ uiView: UIVisualEffectView, context: Context) {
-            uiView.effect = context.environment.visualEffect?.parameters
-                ?? effect.parameters
+            uiView.effect = context.environment.visualEffect.parameters
         }
     }
     #endif
