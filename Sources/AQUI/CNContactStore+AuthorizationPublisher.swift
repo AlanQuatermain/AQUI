@@ -5,6 +5,7 @@
 //  Created by Jim Dovey on 11/2/19.
 //
 
+#if os(iOS) || os(macOS)
 import Contacts
 import Combine
 
@@ -26,3 +27,4 @@ extension CNContactStore {
         return subject
     }
 }
+#endif

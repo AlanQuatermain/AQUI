@@ -40,206 +40,166 @@ struct VisualEffectPreferenceKey: PreferenceKey {
 @available(OSX 10.15, iOS 13.0, tvOS 13.0, *)
 @available(watchOS, unavailable)
 public enum VisualEffect {
-    // Standard system materials for iOS-based platforms
-    @available(iOS 13.0, tvOS 13.0, *)
-    @available(OSX, unavailable)
-    case systemUltraThinMaterial
+    public enum Material {
+        @available(OSX 10.15, iOS 13.0, tvOS 13.0, *)
+        case `default`
 
-    @available(iOS 13.0, tvOS 13.0, *)
-    @available(OSX, unavailable)
-    case systemThinMaterial
+        @available(iOS 13.0, tvOS 13.0, *)
+        @available(OSX, unavailable)
+        case ultraThin
 
-    @available(OSX 10.15, iOS 13.0, tvOS 13.0, *)
-    case systemMaterial
+        @available(iOS 13.0, tvOS 13.0, *)
+        @available(OSX, unavailable)
+        case thin
 
-    @available(iOS 13.0, tvOS 13.0, *)
-    @available(OSX, unavailable)
-    case systemThickMaterial
+        @available(iOS 13.0, tvOS 13.0, *)
+        @available(OSX, unavailable)
+        case thick
 
-    @available(iOS 13.0, tvOS 13.0, *)
-    @available(OSX, unavailable)
-    case systemChromeMaterial
+        @available(iOS 13.0, tvOS 13.0, *)
+        @available(OSX, unavailable)
+        case chrome
 
-    
-    @available(iOS 13.0, tvOS 13.0, *)
-    @available(OSX, unavailable)
-    case systemUltraThinMaterialLight
+        @available(OSX 10.15, *)
+        @available(iOS, unavailable)
+        @available(tvOS, unavailable)
+        case headerView(behindWindow: Bool)
 
-    @available(iOS 13.0, tvOS 13.0, *)
-    @available(OSX, unavailable)
-    case systemThinMaterialLight
+        @available(OSX 10.15, *)
+        @available(iOS, unavailable)
+        @available(tvOS, unavailable)
+        case windowBackground
 
-    @available(iOS 13.0, tvOS 13.0, *)
-    @available(OSX, unavailable)
-    case systemMaterialLight
+        @available(OSX 10.15, *)
+        @available(iOS, unavailable)
+        @available(tvOS, unavailable)
+        case contentBackground(behindWindow: Bool)
 
-    @available(iOS 13.0, tvOS 13.0, *)
-    @available(OSX, unavailable)
-    case systemThickMaterialLight
+        @available(OSX 10.15, *)
+        @available(iOS, unavailable)
+        @available(tvOS, unavailable)
+        case pageBackground(behindWindow: Bool)
+    }
 
-    @available(iOS 13.0, tvOS 13.0, *)
-    @available(OSX, unavailable)
-    case systemChromeMaterialLight
+    case `default`
+    case defaultLight
+    case defaultDark
 
-    
-    @available(iOS 13.0, tvOS 13.0, *)
-    @available(OSX, unavailable)
-    case systemUltraThinMaterialDark
+    case adaptive(Material)
+    case light(Material)
+    case dark(Material)
+}
 
-    @available(iOS 13.0, tvOS 13.0, *)
-    @available(OSX, unavailable)
-    case systemThinMaterialDark
+#if os(iOS) || targetEnvironment(macCatalyst)
+extension VisualEffect {
+    /// Vends an appropriate `UIVisualEffect`.
+    var parameters: UIVisualEffect { UIBlurEffect(style: self.blurStyle) }
 
-    @available(iOS 13.0, tvOS 13.0, *)
-    @available(OSX, unavailable)
-    case systemMaterialDark
-
-    @available(iOS 13.0, tvOS 13.0, *)
-    @available(OSX, unavailable)
-    case systemThickMaterialDark
-
-    @available(iOS 13.0, tvOS 13.0, *)
-    @available(OSX, unavailable)
-    case systemChromeMaterialDark
-    
-    // Values specific to macOS
-    @available(OSX 10.15, *)
-    @available(iOS, unavailable)
-    @available(tvOS, unavailable)
-    case menu
-    
-    @available(OSX 10.15, *)
-    @available(iOS, unavailable)
-    @available(tvOS, unavailable)
-    case popover
-
-    @available(OSX 10.15, *)
-    @available(iOS, unavailable)
-    @available(tvOS, unavailable)
-    case sidebar
-
-    @available(OSX 10.15, *)
-    @available(iOS, unavailable)
-    @available(tvOS, unavailable)
-    case headerView
-
-    @available(OSX 10.15, *)
-    @available(iOS, unavailable)
-    @available(tvOS, unavailable)
-    case sheet
-
-    @available(OSX 10.15, *)
-    @available(iOS, unavailable)
-    @available(tvOS, unavailable)
-    case windowBackground
-
-    @available(OSX 10.15, *)
-    @available(iOS, unavailable)
-    @available(tvOS, unavailable)
-    case hudWindow
-
-    @available(OSX 10.15, *)
-    @available(iOS, unavailable)
-    @available(tvOS, unavailable)
-    case fullScreenUI
-
-    @available(OSX 10.15, *)
-    @available(iOS, unavailable)
-    @available(tvOS, unavailable)
-    case toolTip
-
-    @available(OSX 10.15, *)
-    @available(iOS, unavailable)
-    @available(tvOS, unavailable)
-    case contentBackground
-
-    @available(OSX 10.15, *)
-    @available(iOS, unavailable)
-    @available(tvOS, unavailable)
-    case underWindowBackground
-
-    @available(OSX 10.15, *)
-    @available(iOS, unavailable)
-    @available(tvOS, unavailable)
-    case underPageBackground
-    
-    #if os(iOS) || targetEnvironment(macCatalyst)
+    private var blurStyle: UIBlurEffect.Style {
+        switch self {
+        case .default:      return .systemMaterial
+        case .defaultLight: return .systemMaterialLight
+        case .defaultDark:  return .systemMaterialDark
+        case .adaptive(let material):
+            switch material {
+            case .ultraThin:    return .systemUltraThinMaterial
+            case .thin:         return .systemThinMaterial
+            case .default:      return .systemMaterial
+            case .thick:        return .systemThickMaterial
+            case .chrome:       return .systemChromeMaterial
+            }
+        case .light(let material):
+            switch material {
+            case .ultraThin:    return .systemUltraThinMaterialLight
+            case .thin:         return .systemThinMaterialLight
+            case .default:      return .systemMaterialLight
+            case .thick:        return .systemThickMaterialLight
+            case .chrome:       return .systemChromeMaterialLight
+            }
+        case .dark(let material):
+            switch material {
+            case .ultraThin:    return .systemUltraThinMaterialDark
+            case .thin:         return .systemThinMaterialDark
+            case .default:      return .systemMaterialDark
+            case .thick:        return .systemThickMaterialDark
+            case .chrome:       return .systemChromeMaterialDark
+            }
+        }
+    }
+}
+#elseif os(tvOS)
+extension VisualEffect {
     /// Vends an appropriate `UIVisualEffect`.
     var parameters: UIVisualEffect {
         switch self {
-        case .systemUltraThinMaterial:
-            return UIBlurEffect(style: .systemUltraThinMaterial)
-        case .systemThinMaterial:
-            return UIBlurEffect(style: .systemThinMaterial)
-        case .systemMaterial:
-            return UIBlurEffect(style: .systemMaterial)
-        case .systemThickMaterial:
-            return UIBlurEffect(style: .systemThickMaterial)
-        case .systemChromeMaterial:
-            return UIBlurEffect(style: .systemChromeMaterial)
-        case .systemUltraThinMaterialLight:
-            return UIBlurEffect(style: .systemUltraThinMaterialLight)
-        case .systemThinMaterialLight:
-            return UIBlurEffect(style: .systemThinMaterialLight)
-        case .systemMaterialLight:
-            return UIBlurEffect(style: .systemMaterialLight)
-        case .systemThickMaterialLight:
-            return UIBlurEffect(style: .systemThickMaterialLight)
-        case .systemChromeMaterialLight:
-            return UIBlurEffect(style: .systemChromeMaterialLight)
-        case .systemUltraThinMaterialDark:
-            return UIBlurEffect(style: .systemUltraThinMaterialDark)
-        case .systemThinMaterialDark:
-            return UIBlurEffect(style: .systemThinMaterialDark)
-        case .systemMaterialDark:
-            return UIBlurEffect(style: .systemMaterialDark)
-        case .systemThickMaterialDark:
-            return UIBlurEffect(style: .systemThickMaterialDark)
-        case .systemChromeMaterialDark:
-            return UIBlurEffect(style: .systemChromeMaterialDark)
+        case .adaptive, .default:   return UIBlurEffect(style: .regular)
+        case .light, .defaultLight: return UIBlurEffect(style: .light)
+        case .dark, .defaultDark:   return UIBlurEffect(style: .dark)
         }
     }
-    #elseif os(tvOS)
-    /// Vends an appropriate `UIVisualEffect`.
-    
-    #elseif os(macOS)
-    /// A type describing the values passed to an `NSVisualEffectView`.
-    typealias Description = (material: NSVisualEffectView.Material,
-                             blendingMode: NSVisualEffectView.BlendingMode)
-    
-    /// Vends an appropriate `VisualEffect.Description`.
-    var parameters: Description {
-        switch self {
-        case .systemMaterial:
-            return (.windowBackground, .behindWindow)
-        case .menu:
-            return (.menu, .behindWindow)
-        case .popover:
-            return (.popover, .withinWindow)
-        case .sidebar:
-            return (.sidebar, .behindWindow)
-        case .headerView:
-            return (.headerView, .withinWindow)
-        case .sheet:
-            return (.sheet, .behindWindow)
-        case .windowBackground:
-            return (.windowBackground, .behindWindow)
-        case .hudWindow:
-            return (.hudWindow, .behindWindow)
-        case .fullScreenUI:
-            return (.fullScreenUI, .behindWindow)
-        case .toolTip:
-            return (.toolTip, .withinWindow)
-        case .contentBackground:
-            return (.contentBackground, .withinWindow)
-        case .underWindowBackground:
-            return (.underWindowBackground, .behindWindow)
-        case .underPageBackground:
-            return (.underPageBackground, .withinWindow)
-        }
-    }
-    #endif
 }
+#elseif os(macOS)
+extension VisualEffect {
+    /// A type describing the values passed to an `NSVisualEffectView`.
+    struct NSEffectParameters {
+        var material: NSVisualEffectView.Material = .contentBackground
+        var blendingMode: NSVisualEffectView.BlendingMode = .behindWindow
+        var appearance: NSAppearance? = nil
+    }
+    
+    /// Vends an appropriate `NSEffectParameters`.
+    var parameters: NSEffectParameters {
+        switch self {
+        case .default:      return NSEffectParameters()
+        case .defaultLight: return NSEffectParameters(appearance: NSAppearance(named: .aqua))
+        case .defaultDark:  return NSEffectParameters(appearance: NSAppearance(named: .darkAqua))
+        case .adaptive:
+            return NSEffectParameters(material: self.material,
+                                      blendingMode: self.blendingMode)
+        case .light:
+            return NSEffectParameters(material: self.material,
+                                      blendingMode: self.blendingMode,
+                                      appearance: NSAppearance(named: .aqua))
+        case .dark:
+            return NSEffectParameters(material: self.material,
+                                      blendingMode: self.blendingMode,
+                                      appearance: NSAppearance(named: .darkAqua))
+        }
+    }
+
+    private var material: NSVisualEffectView.Material {
+        switch self {
+        case .default, .defaultLight, .defaultDark:
+            return .contentBackground
+        case .adaptive(let material), .light(let material), .dark(let material):
+            switch material {
+            case .default, .contentBackground: return .contentBackground
+            case .headerView: return .headerView
+            case .pageBackground: return .underPageBackground
+            case .windowBackground: return .windowBackground
+            }
+        }
+    }
+
+    private var blendingMode: NSVisualEffectView.BlendingMode {
+        switch self {
+        case .default, .defaultLight, .defaultDark:
+            return .behindWindow
+        case .adaptive(let material),
+             .light(let material),
+             .dark(let material):
+            switch material {
+            case .default, .windowBackground:
+                return .behindWindow
+            case .contentBackground(let b),
+                 .headerView(let b),
+                 .pageBackground(let b):
+                return b ? .behindWindow : .withinWindow
+            }
+        }
+    }
+}
+#endif
 
 @available(OSX 10.15, iOS 13.0, tvOS 13.0, *)
 @available(watchOS, unavailable)
@@ -266,9 +226,11 @@ struct VisualEffectView: View {
         }
         
         func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
-            let params: VisualEffect.Description = context.environment.visualEffect?.parameters ?? effect
+            let params = context.environment.visualEffect?.parameters
+                ?? effect.parameters
             nsView.material = params.material
             nsView.blendingMode = params.blendingMode
+            nsView.appearance = params.appearance
             
             // mark emphasized if it contains the first responder
             if let resp = nsView.window?.firstResponder as? NSView {
@@ -304,7 +266,7 @@ struct VisualEffectView: View {
 extension View {
     @available(OSX 10.15, iOS 13.0, tvOS 13.0, *)
     @available(watchOS, unavailable)
-    public func visualEffect(_ effect: VisualEffect = .systemMaterial) -> some View {
+    public func visualEffect(_ effect: VisualEffect = .default) -> some View {
         background(VisualEffectView(effect: effect))
     }
 }
