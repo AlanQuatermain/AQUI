@@ -238,8 +238,10 @@ extension VisualEffect {
              .light(let material),
              .dark(let material):
             switch material {
-            case .default, .windowBackground, .titlebar:
+            case .default, .windowBackground:
                 return .behindWindow
+            case .titlebar:
+                return .withinWindow
             case .contentBackground(let b),
                  .headerView(let b),
                  .behindPageBackground(let b):
