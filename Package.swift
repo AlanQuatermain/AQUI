@@ -31,5 +31,5 @@ let package = Package(
             name: "AQUITests",
             dependencies: ["AQUI"]),
     ],
-    swiftLanguageVersions: [.version("5.1")]
+    swiftLanguageVersions: [.v5]
 )
