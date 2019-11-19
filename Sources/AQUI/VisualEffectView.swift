@@ -184,6 +184,7 @@ extension VisualEffect {
         case .adaptive(let material), .light(let material), .dark(let material):
             switch material {
             case .default, .contentBackground: return .contentBackground
+            case .titlebar: return .titlebar
             case .headerView: return .headerView
             case .behindPageBackground: return .underPageBackground
             case .windowBackground: return .windowBackground
@@ -199,7 +200,7 @@ extension VisualEffect {
              .light(let material),
              .dark(let material):
             switch material {
-            case .default, .windowBackground:
+            case .default, .windowBackground, .titlebar:
                 return .behindWindow
             case .contentBackground(let b),
                  .headerView(let b),
