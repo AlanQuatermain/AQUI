@@ -13,17 +13,21 @@ import UIKit
 import AppKit
 #endif
 
+/// The key used to access into the `EnvironmentValues` data set.
 struct VisualEffectKey: EnvironmentKey {
     typealias Value = VisualEffect?
     static var defaultValue: Value = nil
 }
 
 extension EnvironmentValues {
+    /// The visual effect applied to views tagged with the `.visualEffect(_:)`
+    /// modifier, if any.
     public var visualEffect: VisualEffect? {
         get { self[VisualEffectKey.self] }
         set { self[VisualEffectKey.self] = newValue }
     }
 }
+
 
 struct VisualEffectPreferenceKey: PreferenceKey {
     typealias Value = VisualEffect?
@@ -37,53 +41,80 @@ struct VisualEffectPreferenceKey: PreferenceKey {
     }
 }
 
+/// Describes a visual effect to be applied to the background of a view, typically to provide
+/// a blurred rendition of the content below the view in z-order.
 @available(OSX 10.15, iOS 13.0, tvOS 13.0, *)
 @available(watchOS, unavailable)
 public enum VisualEffect: Equatable, Hashable {
+    /// The material types available for the effect.
+    ///
+    /// On iOS and tvOS, this uses material types to specify the desired effect, while on
+    /// macOS the materials are specified semantically based on their expected use case.
     public enum Material: Equatable, Hashable {
+        /// A default appearance, suitable for most cases.
         @available(OSX 10.15, iOS 13.0, tvOS 13.0, *)
         case `default`
 
+        /// A blur simulating a very thin material.
         @available(iOS 13.0, tvOS 13.0, *)
         @available(OSX, unavailable)
         case ultraThin
 
+        /// A blur simulating a thin material.
         @available(iOS 13.0, tvOS 13.0, *)
         @available(OSX, unavailable)
         case thin
 
+        /// A blur simulating a thicker than normal material.
         @available(iOS 13.0, tvOS 13.0, *)
         @available(OSX, unavailable)
         case thick
 
+        /// A blur matching the system chrome.
         @available(iOS 13.0, tvOS 13.0, *)
         @available(OSX, unavailable)
         case chrome
         
+        /// A material suitable for a window titlebar.
         @available(OSX 10.15, *)
         @available(iOS, unavailable)
         @available(tvOS, unavailable)
         @available(macCatalyst, unavailable)
         case titlebar
 
+        /// A material used for the background of a window.
         @available(OSX 10.15, *)
         @available(iOS, unavailable)
         @available(tvOS, unavailable)
         @available(macCatalyst, unavailable)
         case windowBackground
 
+        /// A material used for an inline header view.
+        /// - Parameter behindWindow: `true` if the effect should use
+        ///     the content behind the window, `false` to use content within
+        ///     the window at a lower z-order.
         @available(OSX 10.15, *)
         @available(iOS, unavailable)
         @available(tvOS, unavailable)
         @available(macCatalyst, unavailable)
         case headerView(behindWindow: Bool)
 
+        /// A material used for the background of a content view, e.g. a scroll
+        /// view or a list.
+        /// - Parameter behindWindow: `true` if the effect should use
+        ///     the content behind the window, `false` to use content within
+        ///     the window at a lower z-order.
         @available(OSX 10.15, *)
         @available(iOS, unavailable)
         @available(tvOS, unavailable)
         @available(macCatalyst, unavailable)
         case contentBackground(behindWindow: Bool)
 
+        /// A material used for the background of a view that contains a
+        /// 'page' interface, as in some document-based applications.
+        /// - Parameter behindWindow: `true` if the effect should use
+        ///     the content behind the window, `false` to use content within
+        ///     the window at a lower z-order.
         @available(OSX 10.15, *)
         @available(iOS, unavailable)
         @available(tvOS, unavailable)
@@ -91,12 +122,19 @@ public enum VisualEffect: Equatable, Hashable {
         case behindPageBackground(behindWindow: Bool)
     }
 
+    /// A standard effect that adapts to the current `ColorScheme`.
     case system
+    /// A standard effect that uses the system light appearance.
     case systemLight
+    /// A standard effect that uses the system dark appearance.
     case systemDark
 
+    /// An adaptive effect with the given material that changes to match
+    /// the current `ColorScheme`.
     case adaptive(Material)
+    /// An effect that uses the given material with the system light appearance.
     case light(Material)
+    /// An effect that uses the given material with the system dark appearance.
     case dark(Material)
 }
 
@@ -275,9 +313,20 @@ struct VisualEffectView: View {
 }
 
 extension View {
+    /// Applies a `VisualEffect` to the background of this view.
+    /// - Parameter effect: The effect to use. If unspecified, uses `VisualEffect.system`.
     @available(OSX 10.15, iOS 13.0, tvOS 13.0, macCatalyst 13.0, *)
     @available(watchOS, unavailable)
     public func visualEffect(_ effect: VisualEffect = .system) -> some View {
         background(VisualEffectView(effect: effect))
+    }
+    
+    /// Advertises a view's preference for the `VisualEffect` to be applied to its nearest
+    /// ancestor that has the `.visualEffect(_:)` modifier.
+    /// - Parameter effect: The requested effect.
+    @available(OSX 10.15, iOS 13.0, tvOS 13.0, macCatalyst 13.0, *)
+    @available(watchOS, unavailable)
+    public func visualEffectPreference(_ effect: VisualEffect) -> some View {
+        preference(key: VisualEffectPreferenceKey.self, value: effect)
     }
 }
