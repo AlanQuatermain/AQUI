@@ -28,7 +28,6 @@ extension EnvironmentValues {
     }
 }
 
-
 struct VisualEffectPreferenceKey: PreferenceKey {
     typealias Value = VisualEffect?
     static var defaultValue: VisualEffect? = nil
@@ -255,21 +254,24 @@ extension VisualEffect {
 @available(OSX 10.15, iOS 13.0, tvOS 13.0, macCatalyst 13.0, *)
 @available(watchOS, unavailable)
 struct VisualEffectView: View {
+    @State private var effect: VisualEffect?
     private let content: _PlatformVisualEffectView
-    var body: some View { content }
+    
+    var body: some View {
+        content
+            .environment(\.visualEffect, effect)
+            .onPreferenceChange(VisualEffectPreferenceKey.self) {
+                self.effect = $0
+            }
+    }
     
     fileprivate init(effect: VisualEffect) {
-        self.content = _PlatformVisualEffectView(effect)
+        self._effect = State(wrappedValue: effect)
+        self.content = _PlatformVisualEffectView()
     }
     
     #if os(macOS)
     private struct _PlatformVisualEffectView: NSViewRepresentable {
-        private let effect: VisualEffect
-        
-        fileprivate init(_ effect: VisualEffect) {
-            self.effect = effect
-        }
-        
         func makeNSView(context: Context) -> NSVisualEffectView {
             let view = NSVisualEffectView()
             view.autoresizingMask = [.width, .height]
@@ -277,8 +279,12 @@ struct VisualEffectView: View {
         }
         
         func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
-            let params = context.environment.visualEffect?.parameters
-                ?? effect.parameters
+            guard let params = context.environment.visualEffect?.parameters else {
+                // disable the effect
+                nsView.isHidden = true
+                return
+            }
+            nsView.isHidden = false
             nsView.material = params.material
             nsView.blendingMode = params.blendingMode
             nsView.appearance = params.appearance
@@ -294,21 +300,23 @@ struct VisualEffectView: View {
     }
     #elseif canImport(UIKit)
     private struct _PlatformVisualEffectView: UIViewRepresentable {
-        private let effect: VisualEffect
-        
-        fileprivate init(_ effect: VisualEffect) {
-            self.effect = effect
-        }
-        
         func makeUIView(context: Context) -> UIVisualEffectView {
+            let effect = context.environment.visualEffect ?? .system
+            
             let view = UIVisualEffectView(effect: effect.parameters)
             view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
             return view
         }
         
         func updateUIView(_ uiView: UIVisualEffectView, context: Context) {
-            uiView.effect = context.environment.visualEffect?.parameters
-                ?? effect.parameters
+            guard let effect = context.environment.visualEffect else {
+                // disable the effect
+                uiView.isHidden = true
+                return
+            }
+            
+            uiView.isHidden = false
+            uiView.effect = effect.parameters
         }
     }
     #endif
