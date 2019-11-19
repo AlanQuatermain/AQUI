@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-#if os(iOS) || os(tvOS)
+#if canImport(UIKit)
 import UIKit
 #elseif os(macOS)
 import AppKit
@@ -17,7 +17,7 @@ struct VisualEffectKey: EnvironmentKey {
     typealias Value = VisualEffect?
     static var defaultValue: Value = nil
 }
-  
+
 extension EnvironmentValues {
     public var visualEffect: VisualEffect? {
         get { self[VisualEffectKey.self] }
@@ -39,8 +39,8 @@ struct VisualEffectPreferenceKey: PreferenceKey {
 
 @available(OSX 10.15, iOS 13.0, tvOS 13.0, *)
 @available(watchOS, unavailable)
-public enum VisualEffect {
-    public enum Material {
+public enum VisualEffect: Equatable, Hashable {
+    public enum Material: Equatable, Hashable {
         @available(OSX 10.15, iOS 13.0, tvOS 13.0, *)
         case `default`
 
@@ -59,31 +59,41 @@ public enum VisualEffect {
         @available(iOS 13.0, tvOS 13.0, *)
         @available(OSX, unavailable)
         case chrome
+        
+        @available(OSX 10.15, *)
+        @available(iOS, unavailable)
+        @available(tvOS, unavailable)
+        @available(macCatalyst, unavailable)
+        case titlebar
 
         @available(OSX 10.15, *)
         @available(iOS, unavailable)
         @available(tvOS, unavailable)
-        case headerView(behindWindow: Bool)
-
-        @available(OSX 10.15, *)
-        @available(iOS, unavailable)
-        @available(tvOS, unavailable)
+        @available(macCatalyst, unavailable)
         case windowBackground
 
         @available(OSX 10.15, *)
         @available(iOS, unavailable)
         @available(tvOS, unavailable)
+        @available(macCatalyst, unavailable)
+        case headerView(behindWindow: Bool)
+
+        @available(OSX 10.15, *)
+        @available(iOS, unavailable)
+        @available(tvOS, unavailable)
+        @available(macCatalyst, unavailable)
         case contentBackground(behindWindow: Bool)
 
         @available(OSX 10.15, *)
         @available(iOS, unavailable)
         @available(tvOS, unavailable)
-        case pageBackground(behindWindow: Bool)
+        @available(macCatalyst, unavailable)
+        case behindPageBackground(behindWindow: Bool)
     }
 
-    case `default`
-    case defaultLight
-    case defaultDark
+    case system
+    case systemLight
+    case systemDark
 
     case adaptive(Material)
     case light(Material)
@@ -97,9 +107,9 @@ extension VisualEffect {
 
     private var blurStyle: UIBlurEffect.Style {
         switch self {
-        case .default:      return .systemMaterial
-        case .defaultLight: return .systemMaterialLight
-        case .defaultDark:  return .systemMaterialDark
+        case .system:      return .systemMaterial
+        case .systemLight: return .systemMaterialLight
+        case .systemDark:  return .systemMaterialDark
         case .adaptive(let material):
             switch material {
             case .ultraThin:    return .systemUltraThinMaterial
@@ -132,9 +142,9 @@ extension VisualEffect {
     /// Vends an appropriate `UIVisualEffect`.
     var parameters: UIVisualEffect {
         switch self {
-        case .adaptive, .default:   return UIBlurEffect(style: .regular)
-        case .light, .defaultLight: return UIBlurEffect(style: .light)
-        case .dark, .defaultDark:   return UIBlurEffect(style: .dark)
+        case .adaptive, .system:   return UIBlurEffect(style: .regular)
+        case .light, .systemLight: return UIBlurEffect(style: .light)
+        case .dark, .systemDark:   return UIBlurEffect(style: .dark)
         }
     }
 }
@@ -150,9 +160,9 @@ extension VisualEffect {
     /// Vends an appropriate `NSEffectParameters`.
     var parameters: NSEffectParameters {
         switch self {
-        case .default:      return NSEffectParameters()
-        case .defaultLight: return NSEffectParameters(appearance: NSAppearance(named: .aqua))
-        case .defaultDark:  return NSEffectParameters(appearance: NSAppearance(named: .darkAqua))
+        case .system:      return NSEffectParameters()
+        case .systemLight: return NSEffectParameters(appearance: NSAppearance(named: .aqua))
+        case .systemDark:  return NSEffectParameters(appearance: NSAppearance(named: .darkAqua))
         case .adaptive:
             return NSEffectParameters(material: self.material,
                                       blendingMode: self.blendingMode)
@@ -169,13 +179,13 @@ extension VisualEffect {
 
     private var material: NSVisualEffectView.Material {
         switch self {
-        case .default, .defaultLight, .defaultDark:
+        case .system, .systemLight, .systemDark:
             return .contentBackground
         case .adaptive(let material), .light(let material), .dark(let material):
             switch material {
             case .default, .contentBackground: return .contentBackground
             case .headerView: return .headerView
-            case .pageBackground: return .underPageBackground
+            case .behindPageBackground: return .underPageBackground
             case .windowBackground: return .windowBackground
             }
         }
@@ -183,7 +193,7 @@ extension VisualEffect {
 
     private var blendingMode: NSVisualEffectView.BlendingMode {
         switch self {
-        case .default, .defaultLight, .defaultDark:
+        case .system, .systemLight, .systemDark:
             return .behindWindow
         case .adaptive(let material),
              .light(let material),
@@ -193,7 +203,7 @@ extension VisualEffect {
                 return .behindWindow
             case .contentBackground(let b),
                  .headerView(let b),
-                 .pageBackground(let b):
+                 .behindPageBackground(let b):
                 return b ? .behindWindow : .withinWindow
             }
         }
@@ -201,7 +211,7 @@ extension VisualEffect {
 }
 #endif
 
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, *)
+@available(OSX 10.15, iOS 13.0, tvOS 13.0, macCatalyst 13.0, *)
 @available(watchOS, unavailable)
 struct VisualEffectView: View {
     private let content: _PlatformVisualEffectView
@@ -262,11 +272,11 @@ struct VisualEffectView: View {
     }
     #endif
 }
-  
+
 extension View {
-    @available(OSX 10.15, iOS 13.0, tvOS 13.0, *)
+    @available(OSX 10.15, iOS 13.0, tvOS 13.0, macCatalyst 13.0, *)
     @available(watchOS, unavailable)
-    public func visualEffect(_ effect: VisualEffect = .default) -> some View {
+    public func visualEffect(_ effect: VisualEffect = .system) -> some View {
         background(VisualEffectView(effect: effect))
     }
 }
