@@ -5,11 +5,11 @@
 //  Created by Jim Dovey on 11/25/19.
 //
 
+#if os(iOS) || targetEnvironment(macCatalyst)
 import UIKit
 import SwiftUI
 import Combine
 
-#if os(iOS) || targetEnvironment(macCatalyst)
 fileprivate func rootController() -> UIViewController? {
     let scenes = UIApplication.shared.connectedScenes.compactMap {
         $0 as? UIWindowScene
