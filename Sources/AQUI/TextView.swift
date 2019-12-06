@@ -195,7 +195,7 @@ extension UITraitCollection {
 @available (macOS, unavailable)
 @available (tvOS, unavailable)
 @available (watchOS, unavailable)
-struct _UIKitTextView: UIViewRepresentable {
+fileprivate struct _UIKitTextView: UIViewRepresentable {
     @Binding var text: String
     @State var justified: Bool = false
 
@@ -258,7 +258,7 @@ struct _UIKitTextView: UIViewRepresentable {
 @available (iOS, unavailable)
 @available (tvOS, unavailable)
 @available (watchOS, unavailable)
-struct _AppKitTextView: NSViewRepresentable {
+fileprivate struct _AppKitTextView: NSViewRepresentable {
     @Binding var text: String
 
     func makeNSView(context: Context) -> NSTextView {
