@@ -72,7 +72,7 @@ fileprivate extension EnvironmentValues {
 @available (macOS 10.15, iOS 13, *)
 @available (tvOS, unavailable)
 @available (watchOS, unavailable)
-struct TextView: View {
+public struct TextView: View {
     #if canImport(UIKit)
     private typealias _PlatformView = _UIKitTextView
     #else
@@ -81,13 +81,13 @@ struct TextView: View {
 
     private let platform: _PlatformView
 
-    init(text: Binding<String>) {
+    public init(text: Binding<String>) {
         self.platform = _PlatformView(text: text)
     }
 
-    var body: some View { platform }
+    public var body: some View { platform }
 
-    func justified() -> some View {
+    public func justified() -> some View {
         environment(\.justifiedText, true)
     }
 }
@@ -134,7 +134,7 @@ extension SubjectSinkView where Output == Void {
 @available (macOS 10.15, iOS 13, *)
 @available (tvOS, unavailable)
 @available (watchOS, unavailable)
-extension View {
+public extension View {
     func onTextChanged(perform action: ((Bool) -> Void)?) -> some View {
         SubjectSinkView(self, keyPath: \.textDidChangePublisher, perform: action)
     }
