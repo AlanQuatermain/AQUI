@@ -25,14 +25,28 @@ public extension Binding {
     ///             TextField("Name", text: Binding($thing.name, ""))
     ///         }
     ///     }
+    ///
+    /// - note: From experimentation, it seems that a binding created from an `@State` variable
+    /// is not immediately 'writable'. There is seemingly some work done by SwiftUI following the render pass
+    /// to make newly-created or assigned bindings modifiable, so simply assigning to
+    /// `source.wrappedValue` inside `init` is not likely to have any effect. The implementation
+    /// has been designed to work around this (we don't assume that we can unsafely-unwrap even after
+    /// assigning a non-`nil` value), but a side-effect is that if the binding is never written to outside of
+    /// the getter, then there is no guarantee that the underlying value will become non-`nil`.
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     init(_ source: Binding<Value?>, _ defaultValue: Value) {
-        // Ensure the source doesn't contain nil.
-        if source.wrappedValue == nil {
-            source.wrappedValue = defaultValue
-        }
-        // Now use the regular unwrapping initializer.
-        self.init(source)!
+        self.init(get: {
+            // ensure the source doesn't contain nil
+            if source.wrappedValue == nil {
+                // try to assign--this may not initially work, since it seems
+                // SwiftUI needs to wire things up inside Bindings before they
+                // become properly 'writable'.
+                source.wrappedValue = defaultValue
+            }
+            return source.wrappedValue ?? defaultValue
+        }, set: {
+            source.wrappedValue = $0
+        })
     }
 
     /// Creates a binding that projects the result of `source.wrappedValue == nil`. Additionally
