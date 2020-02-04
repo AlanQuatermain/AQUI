@@ -5,6 +5,7 @@
 //  Created by Jim Dovey on 2/3/20.
 //
 
+#if !os(macOS)
 import SwiftUI
 import UIKit
 
@@ -171,3 +172,4 @@ extension View {
         return self.preference(key: _KeyCommandProxyKey.self, value: [command])
     }
 }
+#endif
