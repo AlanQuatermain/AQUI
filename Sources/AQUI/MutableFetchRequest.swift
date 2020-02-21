@@ -1,6 +1,6 @@
 //
 //  FetchRequest.swift
-//  
+//
 //
 //  Created by Jim Dovey on 11/21/19.
 //
@@ -13,16 +13,21 @@ import os
 @available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 @propertyWrapper
 public struct MutableFetchRequest<Result: NSFetchRequestResult>: DynamicProperty {
-    /// Using `@SharedStorage` to get a `nonmutating set`, otherwise any
+    /// Using `@Boxed` to get a `nonmutating set`, otherwise any
     /// structure containing a `MutableFetchRequest` will be unable to change the
     /// `fetchRequest` without itself being mutable.
-    @SharedStorage private var requestBox: NSFetchRequest<Result>
+    @Boxed private var requestBox: NSFetchRequest<Result>
 
     /// The underlying `NSFetchRequest` used to query the data store. This value is copied in, not
     /// retained, so the property will need to be re-set following any changes.
     public var fetchRequest: NSFetchRequest<Result> {
         get { requestBox }
-        nonmutating set { requestBox = newValue.copy() as! NSFetchRequest<Result> }
+        nonmutating set {
+            requestBox = newValue.copy() as! NSFetchRequest<Result>
+            
+            // Trigger SwiftUI attribute graph refresh.
+            results = nil
+        }
     }
 
     /// State value so controller can update it, triggering SwiftUI rendering.
@@ -42,7 +47,7 @@ public struct MutableFetchRequest<Result: NSFetchRequestResult>: DynamicProperty
     ///   - transaction: The transaction used for any changes to the fetched
     ///     results.
     public init(fetchRequest: NSFetchRequest<Result>, transaction: Transaction) {
-        self._requestBox = SharedStorage(wrappedValue: fetchRequest)
+        self._requestBox = Box(wrappedValue: fetchRequest)
         self.transaction = transaction
     }
 
@@ -81,7 +86,7 @@ public struct MutableFetchRequest<Result: NSFetchRequestResult>: DynamicProperty
         }
         if controller.fetchedResultsController == nil {
             controller.fetchedResultsController = NSFetchedResultsController(
-                fetchRequest: fetchRequest,
+                fetchRequest: fetchRequest.copy() as! NSFetchRequest<Result>,
                 managedObjectContext: managedObjectContext,
                 sectionNameKeyPath: nil,
                 cacheName: nil)

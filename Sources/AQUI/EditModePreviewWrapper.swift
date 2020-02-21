@@ -10,7 +10,7 @@ import SwiftUI
 @available(iOS 13.0, tvOS 13.0, *)
 @available(OSX, unavailable)
 @available(watchOS, unavailable)
-struct EditModePreviewWrapper<Content: View>: View {
+public struct EditModePreviewWrapper<Content: View>: View {
     @State var editMode: EditMode = .inactive
     var content: Content
 

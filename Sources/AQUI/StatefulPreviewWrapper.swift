@@ -9,7 +9,7 @@
 import SwiftUI
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
-struct StatefulPreviewWrapper<Value, Content: View>: View {
+public struct StatefulPreviewWrapper<Value, Content: View>: View {
     @State var value: Value
     var content: (Binding<Value>) -> Content
 
