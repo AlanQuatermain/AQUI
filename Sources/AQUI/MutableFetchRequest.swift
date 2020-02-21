@@ -47,7 +47,7 @@ public struct MutableFetchRequest<Result: NSFetchRequestResult>: DynamicProperty
     ///   - transaction: The transaction used for any changes to the fetched
     ///     results.
     public init(fetchRequest: NSFetchRequest<Result>, transaction: Transaction) {
-        self._requestBox = Box(wrappedValue: fetchRequest)
+        self._requestBox = Boxed(wrappedValue: fetchRequest)
         self.transaction = transaction
     }
 
